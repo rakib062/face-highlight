@@ -18,6 +18,9 @@ outdir=sys.argv[2]
 ext = ['png', 'jpg']
 # files = [(glob.glob( indir + '*.' + e)) for e in ext]
 
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
+
 # for file in files:
 for file in glob.glob(indir+"/*.jpg"):
     # Read the input image
