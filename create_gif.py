@@ -15,7 +15,6 @@ import csv
 indir = sys.argv[1]
 outdir = sys.argv[2]
 box_dict_path = sys.argv[3]
-only_mask = int(sys.argv[4])==1
 
 def create_masked_images(img, face_center, radius, outfile):
     mask = np.full(img.shape, 1, dtype=np.uint8)
@@ -64,8 +63,12 @@ for file in glob.glob(indir+"/*.jpg"):
 
     if not os.path.exists(outdir):
         os.makedirs(outdir)
-    if not os.path.exists('temp'):
-        os.makedirs('temp')
+    if not os.path.exists(outdir+'/masked-images/'):
+        os.makedirs(outdir+'/masked-images/')
+    if not os.path.exists(outdir+'/gifs/'):
+        os.makedirs(outdir+'/gifs/')
+    if not os.path.exists(outdir+'/temp'):
+        os.makedirs(outdir+'/temp')
     
     print(file, box_dict[os.path.basename(file)])
     box =box_dict[os.path.basename(file)]
@@ -75,19 +78,19 @@ for file in glob.glob(indir+"/*.jpg"):
 
     inimg = cv2.imread(file)
 
-    if only_mask: #create only masked images
-        blurred_imgs = create_masked_images(inimg, face_center, radius, 
-                outfile=outdir+"/{}".format(os.path.basename(file))) 
-    else: # create gifs from masked images
-        blurred_imgs = create_black_images(inimg, face_center, radius) 
-        filenames= ['temp/{}.jpg'.format(i) for i in range(101)]
-        out_gif= '{}/{}-anim.gif'.format(outdir, Path(file).stem)
+    
+    blurred_imgs = create_masked_images(inimg, face_center, radius, 
+                outfile="{}/masked-images/{}".format(outdir,os.path.basename(file))) 
+    # else: # create gifs from masked images
+    blurred_imgs = create_black_images(inimg, face_center, radius) 
+    frames_in_anim = 50
+    filenames= ['{}/temp/{}.jpg'.format(outdir, i) for i in range(frames_in_anim)]
+    out_gif= '{}/gifs/{}-anim.gif'.format(outdir, Path(file).stem)
 
-        frames_in_anim = len(filenames)
-        animation_loop_seconds = 5 #time in seconds for animation to loop one cycle
-        seconds_per_frame = animation_loop_seconds / frames_in_anim
-        frame_delay = str(int(seconds_per_frame * 100))
+    animation_loop_seconds = 3 #time in seconds for animation to loop one cycle
+    seconds_per_frame = animation_loop_seconds / frames_in_anim
+    frame_delay = str(int(seconds_per_frame * 100))
 
-        command_list = ['convert', '-delay', frame_delay, '-loop', '1'] \
-                         + filenames + [out_gif]
-        subprocess.call(command_list)
+    command_list = ['convert', '-delay', frame_delay, '-loop', '1'] \
+                     + filenames + [out_gif]
+    subprocess.call(command_list)
